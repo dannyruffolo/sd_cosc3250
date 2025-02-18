@@ -47,7 +47,11 @@ ctxsw:
 //	is here as a placeholder so that you don't crash your O/S when
 //	you call ctxsw() before it is complete.  But, this line of code
 //	is not actually a part of a completed solution.
-	ret
+	ld	ra, CTX_RA*8(a1)
+	ld	sp, CTX_SP*8(a1)
+	ld	t0, CTX_PC*8(a1)
+
+	jalr	zero, t0
 
 // ASSIGNMENT 5 TODO:
 // Note: the following code is for the next assignment.  DO NOT uncomment it

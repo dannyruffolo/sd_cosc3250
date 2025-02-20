@@ -4,14 +4,14 @@
  * established.  After intialization, the null process remains always in
  * a ready or running state.
  */
-/* Embedded Xinu, Copyright (C) 2009, 2025.  All rights reserved. */
+/* Embedded Xinu, Copyright (C) 2009, 2020.  All rights reserved. */
 
 #include <xinu.h>
 
 /* Function prototypes */
 static int sysinit(void);       /* intializes system structures          */
 static void welcome(void);      /* Print inital O/S data                 */
-process main(void); 		/* xmain is the first process created    */
+process xmain(void);            /* xmain is the first process created     */
 
 /* Declarations of major kernel variables */
 pcb proctab[NPROC];             /* Process table                         */
@@ -27,6 +27,12 @@ ulong cpuid;                    /* Processor id                          */
 
 struct platform platform;       /* Platform specific configuration       */
 
+process nullproc(void) {
+    while (1)
+    {
+        user_yield();
+    }
+}
 
 void nulluser(void)
 {
@@ -39,18 +45,10 @@ void nulluser(void)
     /* Standard Embedded Xinu processor and memory info */
     welcome();
 
-    /* Call the main program */
-    main();
+    xmain();
 
-    /* Call the main program */
-//      ready(create((void *) xmain, INITSTK, "MAIN", 2, 0, NULL), 0);
-
-    /* null process has nothing else to do but cannot exit  */
-    while (1)
-    {
-        if (nonempty(readylist))
-            resched();
-    }
+    ready(create((void *)nullproc, INITSTK, "prnull", 0), RESCHED_NO);
+    kill(0);
 }
 
 static void welcome(void)
@@ -116,7 +114,8 @@ static int sysinit(void)
     /* initialize null process entry */
     ppcb = &proctab[NULLPROC];
     ppcb->state = PRCURR;
-    strncpy(ppcb->name, "prnull", 7);
+    strncpy(ppcb->name, "main", 4);
+    ppcb->stkbase       = (void *)&_end;
     ppcb->stklen = (ulong)memheap - (ulong)&_end;
     currpid = NULLPROC;
 

@@ -24,7 +24,20 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
         cause = cause << 1;
         cause = cause >> 1;
 
-       /**
+		if (cause == 8){
+			swi_opcode = *(frame + 7); //get the system call number
+
+			syscall_dispatch(swi_opcode, frame); //call syscall_dispatch
+
+				//set return value in appropriate spot
+
+			set_sepc((ulong)program_counter + 4); //update program counter
+		}
+		else {
+			xtrap(ulong *frame, ulong cause, ulong address, ulong *program_counter) //call xtrap
+		}
+    
+	/**
 	* TODO:
 	* Check to ensure the trap is an environment call from U-Mode
 	* Find the system call number that's triggered

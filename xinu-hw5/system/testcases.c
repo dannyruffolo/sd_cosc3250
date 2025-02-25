@@ -10,6 +10,7 @@
 #include <xinu.h>
 
 extern void main(int, char *);
+extern void user_printf(const char *format, ...);  // Add this line
 
 int test_usernone(void) {
 	kprintf("This is a test of ...");

@@ -50,6 +50,14 @@ int test_usergetc(void) {
 	return 0;
 }
 
+int test_userprintf(void) {
+    int i = 9;
+    user_printf("%d\r\n", i);
+    user_printf("Function Works!\r\n");
+
+    return 0;
+}
+
 int testmain(int argc, char **argv)
 {
     int i = 0;
@@ -122,6 +130,7 @@ void testcases(void)
     kprintf("1) Test user_getc syscall\r\n");
     kprintf("2) Test user_putc syscall\r\n");
     kprintf("3) Create three processes that test user_yield syscall\r\n");
+    kprintf("4) Test user_printf syscall\r\n");
 
     kprintf("===TEST BEGIN===\r\n");
 
@@ -155,6 +164,10 @@ void testcases(void)
               RESCHED_YES);
         while (numproc > 1)
             resched();
+        break;
+
+    case '4':
+        ready(create((void *)test_userprintf, INITSTK, "test_userprintf", 0), RESCHED_YES);
         break;
 
     default:

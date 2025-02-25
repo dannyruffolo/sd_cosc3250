@@ -145,13 +145,19 @@ syscall user_kill(void)
     SYSCALL(KILL);
 }
 
+// Wrapper function to match the signature expected by _doprnt
+int putc_wrapper(long unused, long character)
+{
+    return user_putc(0, (char)character); // Assuming descrp is always 0
+}
+
 syscall user_printf(const char *format, ...)
 {
     int retval;
     va_list ap;
 
     va_start(ap, format);
-    retval = _doprnt(format, ap, (int (*)(long, long))user_putc, 0);
+    retval = _doprnt(format, ap, (int (*)(long, long))putc_wrapper, 0);
     va_end(ap);
     return retval;
 }

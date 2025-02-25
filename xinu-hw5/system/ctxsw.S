@@ -8,7 +8,7 @@
 
 #include <riscv.h>
 
-text
+.text
 	.align 4
 	.globl	ctxsw
 

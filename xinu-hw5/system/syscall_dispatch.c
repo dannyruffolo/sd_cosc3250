@@ -144,3 +144,14 @@ syscall user_kill(void)
 {
     SYSCALL(KILL);
 }
+
+syscall user_printf(const char *format, ...)
+{
+    int retval;
+    va_list ap;
+
+    va_start(ap, format);
+    retval = _doprnt(format, ap, (int (*)(long, long))user_putc, 0);
+    va_end(ap);
+    return retval;
+}

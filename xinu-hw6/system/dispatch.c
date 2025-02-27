@@ -17,28 +17,6 @@
  * @param program_counter  The value of the sepc register 
  */
 
-void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
-    ulong swi_opcode;
-    
-    if((long)cause > 0) {
-        cause = cause << 1;
-        cause = cause >> 1;
-	// Check if trap is call from user mode
-	if(cause == E_ENVCALL_FROM_UMODE) {
-		// Find system call number triggered 
-		swi_opcode = frame[CTX_A7];
-		// Pass system call number and args into syscall_dispatch and set return value to right spot in memory
-		frame[CTX_A0] = syscall_dispatch(swi_opcode, &frame[CTX_A0]);// & - We want the contents
-		// Since A0 stores different things at two different points, make sure it has the return value
-
-		// Update program counter
-		set_sepc(((ulong)program_counter) + 4); // Type-cast for no pointer arithmetic
-	}	
-	else {
-		// If not U-mode, call xtrap function
-		xtrap(frame, cause, val, program_counter); 
-	}
-    
 	/**
 	* TODO:
 	* Check to ensure the trap is an environment call from U-Mode
@@ -49,6 +27,48 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
 	*
 	* If the trap is not an environment call from U-Mode call xtrap
 	*/
-    }
-}
+ 
+void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
+    ulong swi_opcode;
+    
+    if((long)cause > 0) {
+        cause = cause << 1;
+        cause = cause >> 1;
+		// Check if trap is call from user mode
+		if(cause == E_ENVCALL_FROM_UMODE) {
+			// Find system call number triggered 
+			swi_opcode = frame[CTX_A7];
+			// Pass system call number and args into syscall_dispatch and set return value to right spot in memory
+			frame[CTX_A0] = syscall_dispatch(swi_opcode, &frame[CTX_A0]);// & - We want the contents
+			// Since A0 stores different things at two different points, make sure it has the return value
 
+			// Update program counter
+			set_sepc(((ulong)program_counter) + 4); // Type-cast for no pointer arithmetic
+		} else {
+			// If not U-mode, call xtrap function
+			xtrap(frame, cause, val, program_counter); // Call xtrap function
+		}
+	} else {
+		cause = cause << 1;
+		cause = cause >> 1;
+		uint irq_num;
+
+		volatile uint *int_sclaim = (volatile uint *)(PLIC_BASE + 0x201004);
+		irq_num = *int_sclaim;
+
+		if(cause == I_SUPERVISOR_EXTERNAL) {
+			interrupt_handler_t handler = interruptVector[irq_num];
+			*int_sclaim = irq_num;
+			if (handler)
+			{
+				(*handler) ();
+			} else {
+				kprintf("ERROR: No handler registered for interrupt %u\r\n",
+						irq_num);
+
+				while (1)
+					;
+			}
+		}
+	}
+}

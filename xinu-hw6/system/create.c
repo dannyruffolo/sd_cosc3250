@@ -24,11 +24,12 @@ void *getstk(ulong);
  * Create a new process to start running a function.
  * @param funcaddr address of function that will begin in new process
  * @param ssize    stack size in bytes
+ * @param priority process priority
  * @param name     name of the process, used for debugging
  * @param nargs    number of arguments that follow
  * @return the new process id
  */
-syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
+syscall create(void *funcaddr, ulong ssize, unsigned int priority, char *name, ulong nargs, ...)
 {
     ulong *saddr;               /* stack address                */
     ulong pid;                  /* stores new process id        */
@@ -58,6 +59,7 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     ppcb->state = PRSUSP;   		// State: suspended
     ppcb->stkbase = saddr;		 // Stack base
     ppcb->stklen = ssize;         	// Stack length: size
+    ppcb->tickets = priority;		// Tickets: priority
     strncpy(ppcb->name, name, PNMLEN);    	// Name: ID
     
 

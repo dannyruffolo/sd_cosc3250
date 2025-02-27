@@ -52,6 +52,7 @@ typedef struct pentry
     int state;          /**< process state: PRCURR, etc.             */
     void *stkbase;      /**< base of run time stack                  */
     int stklen;         /**< stack length                            */
+    unsigned int tickets; /**< number of tickets for lottery scheduler */
     ulong ctx[CONTEXT]; /**< register context for non-running process*/
     char name[PNMLEN];  /**< process name                            */
 } pcb;

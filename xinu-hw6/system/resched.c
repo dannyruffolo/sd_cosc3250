@@ -38,6 +38,33 @@ syscall resched(void)
      * random ticket value.  Remove process from queue.
      * Set currpid to the new process.
      */
+
+    void lottery(){
+        int totaltickets = 0;
+        
+        while(i < NPROC){
+
+        }
+
+        // counter: used to track if we’ve found the winner yet
+        int counter = 0;
+
+        // winner: call some random number generator to
+        int winner = random(0, totaltickets - 1);
+
+        // current: use this to walk through the list of jobs
+        node_t *current = head;
+        while (current) {
+            counter = counter + current->tickets;
+            if (counter > winner)
+                break; // found the winner
+            current = current->next;
+        }
+        // ’current’ is the winner: schedule it...
+
+
+    }
+
     currpid = dequeue(readylist);
     newproc = &proctab[currpid];
     newproc->state = PRCURR;    /* mark it currently running    */

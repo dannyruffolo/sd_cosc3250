@@ -21,7 +21,8 @@ int testmain(int argc, char **argv)
         kprintf("This is process %d\r\n", currpid);
 
         /* Uncomment the resched() line for cooperative scheduling. */
-        // resched();
+	resched();
+//	kprintf("after resched\r\n");
     }
     return 0;
 }
@@ -114,7 +115,7 @@ void testcases(void)
                      0x13131313, 0x14141414, 0x15151515, 0x16161616);
         printpcb(pid);
         // TODO: print out stack with extra args
-        // TODO: ready(pid, RESCHED_YES);
+        ready(pid, RESCHED_YES);
         break;
 
     case '2':

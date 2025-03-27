@@ -1,4 +1,12 @@
 /**
+ * COC 3250 - Project 4
+ * This is a function to create new processes in embedded operating system 
+ * @author [Sam Mrusek and Danny Ruffolo]
+ * Instructor [Dr.Brylow]
+ * TA-BOT:MAILTO [samantha.mrusek@marquette.edu danny.ruffolo@marquette.edu]
+ */
+
+/**
  * @file create.c
  * @provides create, newpid, userret
  *
@@ -48,9 +56,10 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     // TODO: Setup PCB entry for new process.
     
     ppcb->state = PRSUSP;   		// State: suspended
-    ppcb->saddr = stkbase;        	// Stack base: address on stack
-    ppcb->ssize = stklen;         	// Stack length: size
-    strcpy(ppcb->name, name, PNMLEN);    	// Name: ID
+    ppcb->stkbase = saddr;		 // Stack base
+    ppcb->stklen = ssize;         	// Stack length: size
+    strncpy(ppcb->name, name, PNMLEN);    	// Name: ID
+    
 
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;
@@ -71,13 +80,10 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
     }
     // TODO: Initialize process context.
  
-    for(i = 0; i < CONTEXT; i++) {
-	    ppcb->ctx[i] = 0;
-    }
-
-    ppcb->ctx[CTX_SP] = saddr;
-    ppcb->ctx[CTX_PC] = funcaddr;
-    ppcb->ctx[CTX_RA] = INITRET;
+ 
+    ppcb->ctx[CTX_SP] = (ulong)saddr;
+    ppcb->ctx[CTX_PC] = (ulong)funcaddr;
+    ppcb->ctx[CTX_RA] = (ulong)INITRET;
 
     
     // TODO:  Place arguments into context and/or activation record.
@@ -86,7 +92,12 @@ syscall create(void *funcaddr, ulong ssize, char *name, ulong nargs, ...)
 
     va_start(ap, nargs);
     for(i = 0;i < nargs; i++) {
-	ppcb->ctx[i] = va_arg(ap, ulong); 
+	    if(i < 8) {
+		    ppcb->ctx[i] = va_arg(ap, ulong);
+	    }
+	    else {
+		    saddr[i - 8] = va_arg(ap, ulong);
+	    } 
     }
 
     va_end(ap);

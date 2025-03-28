@@ -79,7 +79,7 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
             		while (1)
                 		;
 		}
-	}
+		}
     }
 }
 

@@ -49,13 +49,11 @@ void printPageTable(pgtbl pagetable, int level)
 	* physical address is maps to. 
 	*/
 
-	int i;
-        for(i = 0; i < 512; i++) {
+        for(int i = 0; i < 512; i++) {
                 ulong pte = pagetable[i];
                 ulong pa = PTE2PA(pte);
                 if(pte & PTE_V) {
-                        int j;
-                        for(j = 0; j < level; j++) {
+                        for(int j = 0; j < level; j++) {
                                 kprintf("\t");
                         }
                         kprintf("Entry %d   pa: %x   pte: %x\r\n", i, pa, pte);
@@ -91,12 +89,14 @@ void testcases(void)
 	switch (c)
 	{
 		case '0':
+			// TODO: Write a testcase that creates a user process
+			// and prints out it's page table
+			
 			// printPageTable(createFakeTable(), 2);
 			pid_typ pid = create(userTest, INITSTK, 5, "userTest", 0);
 			pcb *ppcb = &proctab[pid];
 			printPageTable(ppcb->pagetable, 2);
-			// TODO: Write a testcase that creates a user process
-			// and prints out it's page table
+
 			break;
 		case '1':
 			// TODO: Write a testcase that demonstrates a user

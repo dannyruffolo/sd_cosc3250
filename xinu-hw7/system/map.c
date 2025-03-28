@@ -83,8 +83,8 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
     */
     // This code is from the board and to me makes sense for masking and shifting bits in vaddr
 		ulong VPN2 = (vaddr >> 30) & 0x1FF;
-    		ulong VPN1 = (vaddr >> 21) & 0x1FF;
-    		ulong VPN0 = (vaddr >> 12) & 0x1FF;
+    	ulong VPN1 = (vaddr >> 21) & 0x1FF;
+    	ulong VPN0 = (vaddr >> 12) & 0x1FF;
 
 		ulong *level1;
 		ulong *level2;
@@ -101,17 +101,17 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
 		// Level 0: Check if the entry is valid
                 if(!(pagetable[VPN2] & PTE_V)) {
 			pagetable[VPN2] = PA2PTE(pgalloc()) | PTE_V;
-		}
+        }
 
 		// Walk to Level 1
 		level1 = (ulong *)(pagetable[VPN2] & ~0xFFF);
-
+        
 		// Level 1
-                if(!(level1[VPN1] & PTE_V)) {
+        if(!(level1[VPN1] & PTE_V)) {
 			level1[VPN1] = PA2PTE(pgalloc()) | PTE_V;
 		}
 
-                // Walk to Level 2
+        // Walk to Level 2
 		level2 = (ulong *)(level1[VPN1] & ~0xFFF);
 
 		// Level 2
@@ -120,6 +120,6 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
 		sfence_vma(); // Flush TLB
 
     //  DEBUGGING LINE:
-    	 kprintf("mapPage(pt:0x%X, v:0x%X, p:0x%0X, a:0x%03X)\r\n", pagetable, vaddr, paddr, attr);
+    	kprintf("mapPage(pt:0x%X, v:0x%X, p:0x%0X, a:0x%03X)\r\n", pagetable, vaddr, paddr, attr);
     return OK;
 }

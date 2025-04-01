@@ -26,8 +26,11 @@
  * @param program_counter  The value of the sepc register 
  */
 
-void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
+ulong dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
     ulong swi_opcode;
+
+    pcb *ppcb = NULL;
+    ppcb = &proctab[currpid];
     
         /**
         * TODO:
@@ -46,9 +49,9 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
 	// Check if trap is call from user mode
 	if(cause == E_ENVCALL_FROM_UMODE) {
 		// Find system call number triggered 
-		swi_opcode = frame[CTX_A7];
+		swi_opcode = ppcb->swaparea[CTX_A7];
 		// Pass system call number and args into syscall_dispatch and set return value to right spot in memory
-		frame[CTX_A0] = syscall_dispatch(swi_opcode, &frame[CTX_A0]);// & - We want the contents
+		ppcb->swaparea[CTX_A0] = syscall_dispatch(swi_opcode, &ppcb->swaparea[CTX_A0]);// We want the contents
 		// Since A0 stores different things at two different points, make sure it has the return value
 
 		// Update program counter
@@ -56,7 +59,7 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
 	}	
 	else {
 		// If not U-mode, call xtrap function
-		xtrap(frame, cause, val, program_counter); 
+		xtrap(ppcb->swaparea, cause, val, program_counter); 
 	}
     }
     else {
@@ -81,5 +84,6 @@ void dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
 		}
 		}
     }
+    return MAKE_SATP(currpid, ppcb->pagetable);
 }
 

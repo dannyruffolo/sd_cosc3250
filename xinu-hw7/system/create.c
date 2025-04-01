@@ -51,7 +51,6 @@ syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nar
         return SYSERR;
     }
 
-    numproc++;
     saddr = (ulong *)pgalloc();
     ppcb = &proctab[pid];
 	
@@ -85,7 +84,7 @@ syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nar
     // TODO: Initialize process context.
  
  
-    ppcb->ctx[CTX_SP] = (ulong)saddr;
+    ppcb->ctx[CTX_SP] = (PROCSTACKVADDR) | ((ulong)saddr & 0xFFF);;
     ppcb->ctx[CTX_PC] = (ulong)funcaddr;
     ppcb->ctx[CTX_RA] = (ulong)INITRET;
 

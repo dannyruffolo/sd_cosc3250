@@ -93,12 +93,14 @@ void testcases(void)
 			// and prints out it's page table
 			
 			// printPageTable(createFakeTable(), 2);
+
 			pid_typ pid = create(userTest, INITSTK, 5, "userTest", 0);
 			pcb *ppcb = &proctab[pid];
 			printPageTable(ppcb->pagetable, 2);
 
 			break;
 		case '1':
+			printPageTable(createFakeTable(), 2);
 			// TODO: Write a testcase that demonstrates a user
 			// process cannot access certain areas of memory
 			break;

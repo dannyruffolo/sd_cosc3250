@@ -82,9 +82,9 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
     * the leaf page (don't forget to set the valid bit!)
     */
     // This code is from the board and to me makes sense for masking and shifting bits in vaddr
-		ulong VPN2 = (vaddr >> 30) & 0x1FF;
-    	ulong VPN1 = (vaddr >> 21) & 0x1FF;
-    	ulong VPN0 = (vaddr >> 12) & 0x1FF;
+	ulong VPN2 = (vaddr >> 30) & 0xFFF;
+    	ulong VPN1 = (vaddr >> 21) & 0xFFF;
+    	ulong VPN0 = (vaddr >> 12) & 0xFFF;
 
 		ulong *level1;
 		ulong *level2;
@@ -107,7 +107,7 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
 		level1 = (ulong *)(pagetable[VPN2] & ~0xFFF);
         
 		// Level 1
-        if(!(level1[VPN1] & PTE_V)) {
+        	if(!(level1[VPN1] & PTE_V)) {
 			level1[VPN1] = PA2PTE(pgalloc()) | PTE_V;
 		}
 

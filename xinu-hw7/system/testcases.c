@@ -48,18 +48,53 @@ void printPageTable(pgtbl pagetable, int level)
 	* table.  If it is a leaf, print the page table entry and the
 	* physical address is maps to. 
 	*/
+    
+	if(level < 0) {
+		return;
+	}
 
-        for(int i = 0; i < 512; i++) {
+	int i;
+        for(i = 0; i < PTE_MAX; i++) {
                 ulong pte = pagetable[i];
                 ulong pa = PTE2PA(pte);
                 if(pte & PTE_V) {
-                        for(int j = 0; j < level; j++) {
+			int j;
+                        for(j = 0; j < level; j++) {
                                 kprintf("\t");
                         }
-                        kprintf("Entry %d   pa: %x   pte: %x\r\n", i, pa, pte);
+			kprintf("Entry %d   pa: %x   pte: %x\r\n", i, pa, pte);
+
 
                         if((pte & PTE_R) || (pte & PTE_W) || (pte & PTE_X)) {
-                                //kprintf("Something is set\r\n");
+				if(pte & PTE_R) {
+					if(pte & PTE_W) {
+						if(pte & PTE_X) {
+							kprintf("\trwx\r\n");
+						}
+						kprintf("\trw-\r\n");
+					}
+					else {
+						if(pte & PTE_X) {
+							kprintf("\tr-x\r\n");
+						}
+						kprintf("\tr--\r\n");
+					}
+				}
+				else {
+					if(pte & PTE_W) {
+                                                if(pte & PTE_X) {
+                                                        kprintf("\t-wx\r\n");
+                                                }
+                                                kprintf("\t-w-\r\n");
+                                        }
+                                        else {
+                                                if(pte & PTE_X) {
+                                                        kprintf("\t--x\r\n");
+                                                }
+                                                kprintf("\t---\r\n");
+                                        }
+
+				}
                         }
                         else {
                                 printPageTable(pa, level - 1);
@@ -69,10 +104,53 @@ void printPageTable(pgtbl pagetable, int level)
 }
 
 
-void userTest(void) {
-	int x = 5;
-	x += 2;
-	while(1);
+int testCreateProcess() {
+	kprintf("Test of one process running\r\n");
+	return 0;
+}
+
+int testUserMode(void) {
+	user_putc(0, 'U');
+	user_putc(0, 's');
+	user_putc(0, 'e');
+	user_putc(0, 'r');
+	user_putc(0, ' ');
+        user_putc(0, 'T');
+        user_putc(0, 'e');
+        user_putc(0, 's');
+        user_putc(0, 't');
+
+	sc_putc(0, 'O');
+	sc_putc(0, 'S');
+	sc_putc(0, ' ');
+        sc_putc(0, 'T');
+        sc_putc(0, 'e');
+        sc_putc(0, 's');
+        sc_putc(0, 't');
+
+	return 0;
+	kprintf("DONE");
+}
+
+int testKernel() {
+	kprintf("Testing that we can read process ticket value\r\n");
+	kprintf("Tickets: %d\r\n", proctab[currpid].tickets);
+
+	kprintf("Testing if we can write to kernel variables\r\n");
+	proctab[currpid].tickets = 20;
+	kprintf("Tickets: %d\r\n", proctab[currpid].tickets);
+
+	return 0;
+}
+
+int testmain(int argc, char **argv) {
+	int i = 0;
+	for(i = 0;i < 10; i++) {
+		kprintf("This is process %d\r\n", currpid);
+
+		user_yield();
+	}
+	return 0;
 }
 /**
  * testcases - called after initialization completes to test things.
@@ -88,26 +166,43 @@ void testcases(void)
 	c = kgetc();
 	switch (c)
 	{
+		case 'p':
+			// Testing printPageTable function with the fake table
+			
+			kprintf("This is the Fake Table\r\n");
+			
+			printPageTable(createFakeTable(), 2);
+			break;
+
 		case '0':
 			// TODO: Write a testcase that creates a user process
 			// and prints out it's page table
 			
-			// printPageTable(createFakeTable(), 2);
-
-			pid_typ pid = create(userTest, INITSTK, 5, "userTest", 0);
+			kprintf("Create user process and print out its page table\r\n");
+			
+			pid_typ pid = create(testCreateProcess, INITSTK, PRIORITY_HIGH, "MAIN1", 2, 0, NULL);
 			pcb *ppcb = &proctab[pid];
 			printPageTable(ppcb->pagetable, 2);
 
 			break;
 		case '1':
-			printPageTable(createFakeTable(), 2);
 			// TODO: Write a testcase that demonstrates a user
 			// process cannot access certain areas of memory
+			
+			kprintf("Demonstrate user process cannot access certain memory\r\n");
+
+            		ready(create((void *)testUserMode, INITSTK, PRIORITY_HIGH, "MAIN1", 0), RESCHED_YES);
+			
 			break;
 		case '2':
 			// TODO: Write a testcase that demonstrates a user
 			// process can read kernel variables but cannot write
 			// to them
+			
+			kprintf("Read from kernel variables, but cannot write to them\r\n");
+
+			ready(create((void *)testKernel, INITSTK, PRIORITY_HIGH, "MAIN1", 2, 0, NULL), RESCHED_YES);
+			
 			break;
 		case '3':
 			// TODO: Extra credit! Add handling in xtrap to detect

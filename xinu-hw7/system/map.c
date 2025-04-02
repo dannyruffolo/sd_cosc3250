@@ -82,41 +82,37 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
     * the leaf page (don't forget to set the valid bit!)
     */
     // This code is from the board and to me makes sense for masking and shifting bits in vaddr
-	ulong VPN2 = (vaddr >> 30) & 0xFFF;
-    	ulong VPN1 = (vaddr >> 21) & 0xFFF;
-    	ulong VPN0 = (vaddr >> 12) & 0xFFF;
+    
+	ulong VPN2 = PX(2, vaddr);
+    	ulong VPN1 = PX(1, vaddr);
+    	ulong VPN0 = PX(0, vaddr);
 
-		ulong *level1;
-		ulong *level2;
+		ulong *level0 = NULL;
+		ulong *level1 = NULL;
+		
+		if (!(pagetable[VPN2] & PTE_V)) {
+        		// Allocate a new page for this level and set the valid bit
+        		pagetable[VPN2] = PA2PTE(pgalloc()) | PTE_V;  // Set page entry with valid bit
+			// Get the physical address for the next level (level 1)
+			level1 = (ulong *)PTE2PA(pagetable[VPN2]);
 
-		if(pagetable[VPN2] & PTE_V) {
-			level1 = (ulong *)(pagetable[VPN2] & ~0xFFF);
+    			// Level 1: Check if the entry is valid
+    			if (!(level1[VPN1] & PTE_V)) {
+        		// Allocate a new page for this level and set the valid bit
+        			level1[VPN1] = PA2PTE(pgalloc()) | PTE_V;  // Set page entry with valid bit
+				// Get the physical address for the next level (level 0)
+				level0 = (ulong *)PTE2PA(level1[VPN1]);
+
+
+				if(!(level0[VPN0] & PTE_V)) {
+					level0[VPN0] = PA2PTE(pgalloc()) | PTE_V;
+
+				        // Level 0: Set the final mapping for the leaf page
+                			level0[VPN0] = PA2PTE(paddr) | attr | PTE_V;
+				}
+			}
 		}
-
-		if(pagetable[VPN1] & PTE_V) {
-			// Use that page table for the next level
-			level2 = (ulong *)(level1[VPN1] & ~0xFFF);
-		}
-
-		// Level 0: Check if the entry is valid
-                if(!(pagetable[VPN2] & PTE_V)) {
-			pagetable[VPN2] = PA2PTE(pgalloc()) | PTE_V;
-        }
-
-		// Walk to Level 1
-		level1 = (ulong *)(pagetable[VPN2] & ~0xFFF);
-        
-		// Level 1
-        	if(!(level1[VPN1] & PTE_V)) {
-			level1[VPN1] = PA2PTE(pgalloc()) | PTE_V;
-		}
-
-        // Walk to Level 2
-		level2 = (ulong *)(level1[VPN1] & ~0xFFF);
-
-		// Level 2
-		level2[VPN0] = (paddr & ~0xFFF) | attr | PTE_V;
-
+		
 		sfence_vma(); // Flush TLB
 
     //  DEBUGGING LINE:

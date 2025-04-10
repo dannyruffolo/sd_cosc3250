@@ -81,41 +81,42 @@ syscall mapPage(pgtbl pagetable, ulong vaddr, ulong paddr, int attr)
     * Once you've traversed all three levels, set the attributes (attr) for
     * the leaf page (don't forget to set the valid bit!)
     */
-    // This code is from the board and to me makes sense for masking and shifting bits in vaddr
     
 	ulong VPN2 = PX(2, vaddr);
     	ulong VPN1 = PX(1, vaddr);
     	ulong VPN0 = PX(0, vaddr);
 
-		ulong *level0 = NULL;
-		ulong *level1 = NULL;
+	ulong *level0 = NULL;
+	ulong *level1 = NULL;
 		
-		if (!(pagetable[VPN2] & PTE_V)) {
-        		// Allocate a new page for this level and set the valid bit
-        		pagetable[VPN2] = PA2PTE(pgalloc()) | PTE_V;  // Set page entry with valid bit
-			// Get the physical address for the next level (level 1)
-			level1 = (ulong *)PTE2PA(pagetable[VPN2]);
+	if (!(pagetable[VPN2] & PTE_V)) {
+        	// Allocate a new page for this level and set the valid bit
+        	pagetable[VPN2] = PA2PTE(pgalloc()) | PTE_V;  // Set page entry with valid bit
+		// Get the physical address for the next level (level 1)
+	}
+	level1 = (ulong *)PTE2PA(pagetable[VPN2]);
 
-    			// Level 1: Check if the entry is valid
-    			if (!(level1[VPN1] & PTE_V)) {
-        		// Allocate a new page for this level and set the valid bit
-        			level1[VPN1] = PA2PTE(pgalloc()) | PTE_V;  // Set page entry with valid bit
-				// Get the physical address for the next level (level 0)
-				level0 = (ulong *)PTE2PA(level1[VPN1]);
+    	// Level 1: Check if the entry is valid
+    	if (!(level1[VPN1] & PTE_V)) {
+        	// Allocate a new page for this level and set the valid bit
+        	level1[VPN1] = PA2PTE(pgalloc()) | PTE_V;  // Set page entry with valid bit
+		// Get the physical address for the next level (level 0)
+	}	
+	level0 = (ulong *)PTE2PA(level1[VPN1]);
+
+	if(!(level0[VPN0] & PTE_V)) {
+		// Level 0: Set the final mapping for the leaf page
+                level0[VPN0] = PA2PTE(paddr) | attr | PTE_V;
+	}
+        else {
+		kprintf("Error - mapPage(pt:0x%X, v:0x%X, p:0x%0X, a:0x%03X)\r\n", pagetable, vaddr, paddr, attr);
+	}
 
 
-				if(!(level0[VPN0] & PTE_V)) {
-					level0[VPN0] = PA2PTE(pgalloc()) | PTE_V;
-
-				        // Level 0: Set the final mapping for the leaf page
-                			level0[VPN0] = PA2PTE(paddr) | attr | PTE_V;
-				}
-			}
-		}
-		
-		sfence_vma(); // Flush TLB
+        sfence_vma(); // Flush TLB
 
     //  DEBUGGING LINE:
-    	kprintf("mapPage(pt:0x%X, v:0x%X, p:0x%0X, a:0x%03X)\r\n", pagetable, vaddr, paddr, attr);
-    return OK;
+    //	kprintf("mapPage(pt:0x%X, v:0x%X, p:0x%0X, a:0x%03X)\r\n", pagetable, vaddr, paddr, attr);
+	
+	return OK;
 }

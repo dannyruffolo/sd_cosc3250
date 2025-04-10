@@ -48,13 +48,26 @@ void printPageTable(pgtbl pagetable, int level)
 	* table.  If it is a leaf, print the page table entry and the
 	* physical address is maps to. 
 	*/
-    
+    /*
+	int i;
+	for(i = 0;i < 512;i++) {
+		ulong pte = &pagetable[i];
+		if((pte & PTE_R) || (pte & PTE_W) || (pte & PTE_X)) {
+			kprintf("Entry: %d   PTE: %x\r\n", i, pte);
+		}
+		else {
+			printPageTable(PTE2PA(pagetable[i]));
+		}
+
+	}
+	*/
+
 	if(level < 0) {
 		return;
 	}
 
 	int i;
-        for(i = 0; i < PTE_MAX; i++) {
+        for(i = 0; i < 512; i++) {
                 ulong pte = pagetable[i];
                 ulong pa = PTE2PA(pte);
                 if(pte & PTE_V) {
@@ -65,7 +78,7 @@ void printPageTable(pgtbl pagetable, int level)
 			kprintf("Entry %d   pa: %x   pte: %x\r\n", i, pa, pte);
 
 
-                        if((pte & PTE_R) || (pte & PTE_W) || (pte & PTE_X)) {
+        if((pte & PTE_R) || (pte & PTE_W) || (pte & PTE_X)) {
 				if(pte & PTE_R) {
 					if(pte & PTE_W) {
 						if(pte & PTE_X) {
@@ -183,6 +196,8 @@ void testcases(void)
 			pid_typ pid = create(testCreateProcess, INITSTK, PRIORITY_HIGH, "MAIN1", 2, 0, NULL);
 			pcb *ppcb = &proctab[pid];
 			printPageTable(ppcb->pagetable, 2);
+
+			ready(pid, RESCHED_YES);
 
 			break;
 		case '1':

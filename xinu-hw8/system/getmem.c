@@ -43,5 +43,15 @@ void *getmem(ulong nbytes)
      *      - return memory address if successful
      */
 
+     // Loop through memory blocks in free list to see if there is a suitable block
+     		// Start at the beginning address of freelist
+		// head points to first memory block so check this memory block's size
+		// If the size is suitable then return the memory address that head points to
+		// If it is not suitable, change head to what next is pointing to (which should be the next memory block)
+		// If it finds a suitable block, return the address 
+		// If nothing is found then call user_incheap
+		
+     
+
     return (void *)SYSERR;
 }

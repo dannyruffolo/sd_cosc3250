@@ -30,6 +30,8 @@ ulong dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
     ulong swi_opcode;
 
     pcb *ppcb = NULL;
+    int result;
+
     ppcb = &proctab[currpid];
     
         /**
@@ -51,10 +53,12 @@ ulong dispatch(ulong cause, ulong val, ulong *frame, ulong *program_counter) {
 		// Find system call number triggered 
 		swi_opcode = ppcb->swaparea[CTX_A7];
 		// Pass system call number and args into syscall_dispatch and set return value to right spot in memory
-		ppcb->swaparea[CTX_A0] = syscall_dispatch(swi_opcode, &ppcb->swaparea[CTX_A0]);// We want the contents
+		result = syscall_dispatch(swi_opcode, &ppcb->swaparea[CTX_A0]);// We want the contents
 		// Since A0 stores different things at two different points, make sure it has the return value
 
 		// Update program counter
+		ppcb = &proctab[currpid];
+		ppcb->swaparea[CTX_A0] = result;
 		set_sepc(((ulong)program_counter) + 4); // Type-cast for no pointer arithmetic
 	}	
 	else {

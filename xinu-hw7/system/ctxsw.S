@@ -8,7 +8,7 @@
 
 #include <riscv.h>
 
-.text
+.section .ctxswsec
 	.align 4
 	.globl	ctxsw
 
@@ -27,7 +27,7 @@
  */
 	.func ctxsw
 ctxsw:
-	mv      t5, a2
+	mv      t2, a2
         sd      sp, CTX_SP*8(a0)
 
         sd      ra, CTX_RA*8(a0)
@@ -105,7 +105,7 @@ ctxsw:
 	li t4, SSTATUS_S_MODE
 	csrc sstatus, t4
 	csrw sepc, t0
-	csrw satp, t5
+	csrw satp, t2
 	sfence.vma zero, zero
 
 	sret

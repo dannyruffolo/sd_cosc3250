@@ -34,7 +34,7 @@ typedef struct memhead
     ulong length;               /* non-constant; current size of list */
     ulong base;                 /* beginning address of free list     */
     ulong bound;                /* fixed value; total size of list    */
-    //spinlock_t memlock;         /* lock for mutual exclusion          */
+    //spinlock_t memlock;         /* lock for mutual exclusion         
 } memhead;
 
 extern memhead freelist[];      /* heads of free memory lists         */

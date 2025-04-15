@@ -28,13 +28,12 @@ syscall freemem(void *memptr, ulong nbytes)
     ulong top;
 
     /* make sure block is in heap */
-    if ((0 == nbytes)
-        || ((ulong)memptr < (ulong)PROCHEAPADDR))
+    if ((0 == nbytes) || ((ulong)memptr < (ulong)proctab[currpid].heaptop))
     {
         return SYSERR;
     }
 
-    head = (struct memhead *)PROCHEAPADDR;
+    head = (struct memhead *)proctab[currpid].heaptop;
     block = (struct memblock *)memptr;
     nbytes = (ulong)roundmb(nbytes);
 
@@ -46,6 +45,37 @@ syscall freemem(void *memptr, ulong nbytes)
      *      - Coalesce with previous block if adjacent
      *      - Coalesce with next block if adjacent
      */
+
+    struct memblock *curr = next;
+    block->length = nbytes;
+    
+    // Find where the memory block should go
+
+    while((curr != NULL) && (curr < block)) {
+	    prev = curr;
+	    curr = curr->next;
+    }
+
+    // Find top of previous memblock
+
+
+    if(block + block->length == curr) {
+	    block->length += curr->length;
+	    block->next = curr->next;
+    }
+
+    else {
+	    block->next = curr;
+    }
+
+    if(prev + prev->length == block) {
+	    prev->length += block->length;
+	    prev->next = block->next;
+    }
+
+    else {
+	    prev->next = block;
+    }
 
     return OK;
 }

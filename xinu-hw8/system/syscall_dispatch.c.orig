@@ -11,7 +11,7 @@
 #define SCARG(type, args)  (type)(*args++)
 
 /* macro to make user->kernel syscalls */
-#define SYSCALL(num) ulong status; \
+#define SYSCALL(num) int status; \
     asm("li a7, %0" : : "i"(SYSCALL_##num)); \
     asm("ecall"); \
 	asm("mv %0, a0" : "=r"(status)); \
@@ -57,7 +57,7 @@ int nsyscall = sizeof(syscall_table) / sizeof(struct syscall_info);
  * @param args pointer to arguments for syscall
 
  */
-syscall syscall_dispatch(int code, ulong *args)
+int syscall_dispatch(int code, ulong *args)
 {
     if (0 <= code && code < nsyscall)
     {

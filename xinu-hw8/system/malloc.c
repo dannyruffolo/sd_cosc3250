@@ -1,7 +1,5 @@
 /**
  * @file malloc.c
- * This file is deprecated in favor of mem/malloc.c and the user heap
- * allocator.  However, it remains here for backup purposes.
  */
 /* Embedded Xinu, Copyright (C) 2009, 2013.  All rights reserved. */
 
@@ -36,7 +34,10 @@ void *malloc(ulong size)
       *      3) Set accounting info in pmem
       */
 
-      
+    ulong total_size = size + sizeof(ulong);
+    ulong *block = (ulong *)getmem(total_size);
+
+    
 
     return (void *)SYSERR;
 }

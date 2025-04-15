@@ -1,0 +1,19 @@
+--- include/syscall.h	2025-02-14 13:24:44.000000000 -0600
++++ include/syscall.h	2025-04-11 15:46:30.795561613 -0500
+@@ -8,7 +8,7 @@
+ #define _SYSCALL_H_
+ 
+ exchandler syscall_entry(void);
+-int syscall_dispatch(int, ulong *);
++syscall syscall_dispatch(int, ulong *);
+ 
+ struct syscall_info
+ {
+@@ -43,6 +43,6 @@
+ syscall user_getc(int descrp);
+ syscall user_putc(int descrp, char character);
+ syscall user_kill(void);
+-ulong user_incheap(ulong);
++syscall user_incheap(ulong);
+ 
+-#endif                          /* __SYSCALL_H__ */+#endif                          /* __SYSCALL_H__ */

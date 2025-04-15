@@ -53,7 +53,7 @@ extern void *_interrupte;       /* end of interrupts                  */
 extern ulong *_kernpgtbl;	/* kernel page table                  */
 
 /* Memory function prototypes */
-void *getmem(ulong nbytes);
+void *getmem(uint nbytes);
 syscall freemem(void *pmem, ulong nbytes);
 
 #endif                          /* _MEMORY_H_ */

@@ -8,7 +8,7 @@
 #define _SYSCALL_H_
 
 exchandler syscall_entry(void);
-syscall syscall_dispatch(int, ulong *);
+int syscall_dispatch(int, ulong *);
 
 struct syscall_info
 {

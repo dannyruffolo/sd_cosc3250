@@ -59,7 +59,7 @@ syscall resched(void)
     preempt = QUANTUM;
 #endif
 
-   // kprintf("Switching to %d", currpid);
+//    kprintf("[ %d]", currpid);
     ctxsw(&oldproc->ctx, &newproc->ctx, MAKE_SATP(currpid, newproc->pagetable));
 
     /* The OLD process returns here when resumed. */

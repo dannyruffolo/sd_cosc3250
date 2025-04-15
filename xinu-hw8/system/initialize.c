@@ -26,7 +26,6 @@ void *memheap;                  /* Bottom of heap (top of O/S stack)     */
 ulong cpuid;                    /* Processor id                          */
 
 ulong *_kernpgtbl;              /* Kernel page table address             */
-ulong *_kernsp;                 /* Kernel stack pointer                  */
 struct pgmemblk *pgfreelist = NULL;
                                 /* Linked list of physical free pages    */
 uint pgtbl_nents = 0;           /* Number of pages in the entire system  */
@@ -62,7 +61,7 @@ void nulluser(void)
 
     /* Setup memory protection for kernel.  Turn paging on for kernel. */
     // TODO: Uncomment this line once you have thoroughly tested paging.
-   // _kernpgtbl = vm_kerninit();
+    _kernpgtbl = vm_kerninit();
 
     xmain();
 
@@ -85,7 +84,7 @@ static void welcome(void)
     kprintf("%10d bytes physical memory.\r\n",
             (ulong)platform.maxaddr - (ulong)platform.minaddr);
     kprintf("           [0x%016lX to 0x%016lX]\r\n",
-            (ulong)platform.minaddr, (ulong)(platform.maxaddr - 1));
+            (ulong)platform.minaddr, (ulong)(platform.maxaddr));
 
     kprintf("%10lu bytes reserved system area.\r\n",
             (ulong)_start - (ulong)platform.minaddr);
@@ -103,7 +102,7 @@ static void welcome(void)
     kprintf("%10d bytes heap space.\r\n",
             (ulong)platform.maxaddr - (ulong)memheap);
     kprintf("           [0x%016lX to 0x%016lX]\r\n\r\n",
-            (ulong)memheap, (ulong)platform.maxaddr - 1);
+            (ulong)memheap, (ulong)platform.maxaddr);
 
     kprintf("\r\n");
 }

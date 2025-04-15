@@ -63,8 +63,9 @@ syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nar
     ppcb->tickets = priority;            // Assigning tickets to process for scheduling
     strncpy(ppcb->name, name, PNMLEN);    	// Name: ID
     
-
+    saddr = (ulong)saddr + (PAGE_SIZE - sizeof(ulong));  
     /* Initialize stack with accounting block. */
+
     *saddr = STACKMAGIC;
     *--saddr = pid;
     *--saddr = ppcb->stklen;
@@ -84,12 +85,12 @@ syscall create(void *funcaddr, ulong ssize, uint priority, char *name, ulong nar
     // TODO: Initialize process context.
  
  
-    ppcb->ctx[CTX_SP] = (PROCSTACKVADDR) | ((ulong)saddr & 0xFFF);;
+    ppcb->ctx[CTX_SP] = (PROCSTACKVADDR) | ((ulong)saddr & 0xFFF);
     ppcb->ctx[CTX_PC] = (ulong)funcaddr;
     ppcb->ctx[CTX_RA] = (ulong)INITRET;
 
-    ppcb->swaparea[CTX_KERNSATP] = (ulong)MAKE_SATP(0, _kernpgtbl);
-    ppcb->swaparea[CTX_KERNSP] = (ulong)_kernsp;
+    // ppcb->swaparea[CTX_KERNSATP] = (ulong)MAKE_SATP(0, _kernpgtbl);
+    // ppcb->swaparea[CTX_KERNSP] = (ulong)_kernsp;
 
     
     // TODO:  Place arguments into context and/or activation record.

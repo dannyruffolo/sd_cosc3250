@@ -1,0 +1,11 @@
+--- compile/Makefile	2025-02-21 11:16:34.000000000 -0600
++++ compile/Makefile	2025-04-11 15:46:30.663561904 -0500
+@@ -271,7 +271,7 @@
+ 
+ xinu.elf: $(COMP_OBJ) $(MAIN_OBJ) \
+ 	  $(DATA_OBJ) $(LIB_ARC) $(USRTHRS_OBJ)
+-	@echo "\tLinking" $@
++	@echo -e "\tLinking" $@
+ 	$(KERNEL_LD) -o $@ $(LDFLAGS) $^ $(LDLIBS)
+ 
+ # Special case: Handle automatically generating the version.h header.  Note:

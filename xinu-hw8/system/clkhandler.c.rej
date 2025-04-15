@@ -1,0 +1,11 @@
+--- system/clkhandler.c	2025-02-14 13:24:44.000000000 -0600
++++ system/clkhandler.c	2025-04-11 15:46:30.698561827 -0500
+@@ -5,7 +5,7 @@
+ 
+ #include <xinu.h>
+ 
+-int resched(void);
++syscall resched(void);
+ 
+ /**
+  * @ingroup timer

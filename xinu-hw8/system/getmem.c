@@ -32,7 +32,7 @@ void *getmem(ulong nbytes)
 
     /* round to multiple of memblock size   */
     nbytes = (ulong)roundmb(nbytes);
-    struct memhead *head = (memhead *)PROCHEAPADDR;
+    struct memhead *head = (memhead *)proctab[currpid].heaptop;
 
     /* TODO:
      *      - Traverse through the freelist
@@ -42,16 +42,37 @@ void *getmem(ulong nbytes)
      *        with the request to add more pages to our process heap
      *      - return memory address if successful
      */
+  
+    prev = NULL;
+    curr = head->head;
+    leftover = curr->length - nbytes;
 
-     // Loop through memory blocks in free list to see if there is a suitable block
-     		// Start at the beginning address of freelist
-		// head points to first memory block so check this memory block's size
-		// If the size is suitable then return the memory address that head points to
-		// If it is not suitable, change head to what next is pointing to (which should be the next memory block)
-		// If it finds a suitable block, return the address 
-		// If nothing is found then call user_incheap
-		
-     
+/*
+    if(curr == NULL) {
+	    user_incheap();
+    }
+*/ 
+
+    while(curr != NULL) {
+	    if(curr->length == nbytes) {
+		    head->head = curr->next;
+		    head->length -= curr->length;
+		    
+		    return curr;
+	    }
+
+	    else if(curr->length > nbytes) {	
+		    head->head = leftover;
+		    leftover->length = curr->length - nbytes;
+	            head->length -= curr->length;
+
+	            return curr;	    
+	    }
+	    else {
+		    prev = curr;
+		    head->head = curr->next;
+	    }
+    }
 
     return (void *)SYSERR;
 }

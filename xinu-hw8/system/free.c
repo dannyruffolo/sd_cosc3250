@@ -14,7 +14,7 @@
  * @param ptr
  *      A pointer to the memory block to free.
  */
-syscall free(void *ptr)
+void free(void *ptr)
 {
     struct memblock *block;
 
@@ -24,5 +24,7 @@ syscall free(void *ptr)
      *      3) call freemem on the block with its length
      */
 
-    return OK;
+    ulong size = (ulong)block;
+    freemem((void *)block, size + sizeof(ulong));
+
 }

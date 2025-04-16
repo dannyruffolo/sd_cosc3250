@@ -21,7 +21,7 @@
  *      The returned pointer is guaranteed to be 8-byte aligned.  Free the block
  *      with memfree() when done with it.
  */
-void *getmem(ulong nbytes)
+void *getmem(uint nbytes)
 {
     register memblk *prev, *curr, *leftover;
 
@@ -31,7 +31,7 @@ void *getmem(ulong nbytes)
     }
 
     /* round to multiple of memblock size   */
-    nbytes = (ulong)roundmb(nbytes);
+    nbytes = (uint)roundmb(nbytes);
     struct memhead *head = (memhead *)proctab[currpid].heaptop;
 
     /* TODO:
@@ -42,36 +42,36 @@ void *getmem(ulong nbytes)
      *        with the request to add more pages to our process heap
      *      - return memory address if successful
      */
-  
+
     prev = NULL;
     curr = head->head;
-    leftover = curr->length - nbytes;
+    //leftover = ;
 
-/*
+
     if(curr == NULL) {
-	    user_incheap();
+            user_incheap(nbytes);
     }
-*/ 
+
 
     while(curr != NULL) {
-	    if(curr->length == nbytes) {
-		    head->head = curr->next;
-		    head->length -= curr->length;
-		    
-		    return curr;
-	    }
+            if(curr->length == nbytes) {
+                    head->head = curr->next;
+                    head->length -= curr->length;
 
-	    else if(curr->length > nbytes) {	
-		    head->head = leftover;
-		    leftover->length = curr->length - nbytes;
-	            head->length -= curr->length;
+                    return curr;
+            }
 
-	            return curr;	    
-	    }
-	    else {
-		    prev = curr;
-		    head->head = curr->next;
-	    }
+            else if(curr->length > nbytes) {
+                    head->head = leftover;
+                    leftover->length = curr->length - nbytes;
+                    head->length -= curr->length;
+
+                    return curr;
+            }
+            else {
+                    prev = curr;
+                    head->head = curr->next;
+            }
     }
 
     return (void *)SYSERR;

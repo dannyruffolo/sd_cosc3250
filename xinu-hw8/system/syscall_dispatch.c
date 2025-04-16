@@ -24,7 +24,7 @@ syscall sc_yield(ulong *);
 syscall sc_getc(ulong *);
 syscall sc_putc(ulong *);
 syscall sc_kill(ulong *);
-syscall sc_printf(ulong *);
+void *sc_incheap(ulong *);
 
 /* table for determining how to call syscalls */
 const struct syscall_info syscall_table[] = {
@@ -41,10 +41,11 @@ const struct syscall_info syscall_table[] = {
     { 2, (void *)sc_none },     /* SYSCALL_SEEK      = 10 */
     { 4, (void *)sc_none },     /* SYSCALL_CONTROL   = 11 */
     { 1, (void *)sc_none },     /* SYSCALL_GETDEV    = 12 */
-    { 4, (void *)sc_none },   /* SYSCALL_CREATE    = 13 */
+    { 4, (void *)sc_none },     /* SYSCALL_CREATE    = 13 */
     { 2, (void *)sc_none },     /* SYSCALL_JOIN      = 14 */
     { 1, (void *)sc_none },     /* SYSCALL_LOCK      = 15 */
-    { 1, (void *)sc_none },   /* SYSCALL_UNLOCK    = 16 */
+    { 1, (void *)sc_none },     /* SYSCALL_UNLOCK    = 16 */
+    { 1, (void *)sc_incheap },  /* SYSCALL_INCHEAP    = 17 */
 };
 
 int nsyscall = sizeof(syscall_table) / sizeof(struct syscall_info);
@@ -55,13 +56,11 @@ int nsyscall = sizeof(syscall_table) / sizeof(struct syscall_info);
  * saying no such syscall.
  * @param code syscall code to execute
  * @param args pointer to arguments for syscall
-
  */
 syscall syscall_dispatch(int code, ulong *args)
 {
     if (0 <= code && code < nsyscall)
     {
-
         return (*syscall_table[code].handler) (args);
     }
     kprintf("ERROR: unknown syscall %d!\r\n", code);
@@ -148,13 +147,18 @@ syscall user_kill(void)
     SYSCALL(KILL);
 }
 
-syscall user_printf(const char *format, ...) {
-    int retval;
-    va_list ap;
+/**
+ * syscall wrapper for kill().
+ * @param args expands to: ulong size
+ */
+void *sc_incheap(ulong *args)
+{
+    ulong size = SCARG(ulong, args);
 
-    va_start(ap, format);
-    retval = _doprnt(format, ap, (int (*)(long, long))user_putc, 0);
-    va_end(ap);
-    return retval;
+    return incheap(size);
+}
 
+syscall user_incheap(ulong size)
+{
+    SYSCALL(INCHEAP);
 }

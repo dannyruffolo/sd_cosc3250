@@ -24,7 +24,4 @@ void free(void *ptr)
      *      3) call freemem on the block with its length
      */
 
-    ulong size = (ulong)block;
-    freemem((void *)block, size + sizeof(ulong));
-
 }

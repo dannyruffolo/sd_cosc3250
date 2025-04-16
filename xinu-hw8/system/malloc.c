@@ -34,10 +34,5 @@ void *malloc(ulong size)
       *      3) Set accounting info in pmem
       */
 
-    ulong total_size = size + sizeof(ulong);
-    ulong *block = (ulong *)getmem(total_size);
-
-    
-
     return (void *)SYSERR;
 }

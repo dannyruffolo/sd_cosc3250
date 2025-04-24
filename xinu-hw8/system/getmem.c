@@ -45,13 +45,11 @@ void *getmem(uint nbytes)
 
     prev = NULL;
     curr = head->head;
-    //leftover = ;
-
 
     if(curr == NULL) {
-            user_incheap(nbytes);
-    }
+            struct memblock *newmem = (struct memblock *)user_incheap(nbytes);
 
+    }
 
     while(curr != NULL) {
             if(curr->length == nbytes) {
@@ -64,7 +62,7 @@ void *getmem(uint nbytes)
             else if(curr->length > nbytes) {
                     head->head = leftover;
                     leftover->length = curr->length - nbytes;
-                    head->length -= curr->length;
+                    head->length -= nbytes;
 
                     return curr;
             }

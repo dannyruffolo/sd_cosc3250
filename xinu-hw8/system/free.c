@@ -16,7 +16,15 @@
  */
 void free(void *ptr)
 {
-    struct memblock *block;
+    if (ptr == NULL)
+    {
+        return;
+    }
+
+    ulong *accounting = (ulong *)ptr - 2;
+    ulong size = accounting[1];
+
+    freemem((void *)accounting, size + 2 * sizeof(ulong));
 
     /* TODO:
      *      1) set block to point to memblock to be free'd (ptr)

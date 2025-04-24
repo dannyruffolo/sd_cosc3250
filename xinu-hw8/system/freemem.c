@@ -24,7 +24,7 @@
 syscall freemem(void *memptr, uint nbytes)
 {
     register struct memblock *block, *next, *prev;
-    struct memhead *head = NULL;
+    struct memhead *head;
     ulong top;
 
     /* make sure block is in heap */
@@ -48,6 +48,7 @@ syscall freemem(void *memptr, uint nbytes)
     
     struct memblock *curr = head->head;
     block->length = nbytes;
+    prev = NULL;
 
     // Find where the memory block should go
     while((curr != NULL) && (curr < block)) {
@@ -58,7 +59,7 @@ syscall freemem(void *memptr, uint nbytes)
     // Find top of previous memblock
 
 
-    if(block + block->length == curr) {
+    if(curr != NULL && (block + block->length == curr)) {
             block->length += curr->length;
             block->next = curr->next;
     }
@@ -67,13 +68,15 @@ syscall freemem(void *memptr, uint nbytes)
             block->next = curr;
     }
 
-    if(prev + prev->length == block) {
+    if(prev != NULL && prev + prev->length == block) {
             prev->length += block->length;
             prev->next = block->next;
-    }
-
-    else {
+    } else {
+        if (prev == NULL) {
+            head->head = block;
+        } else {
             prev->next = block;
+        }
     }
 
     return OK;

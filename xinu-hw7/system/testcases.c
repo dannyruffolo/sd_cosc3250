@@ -93,8 +93,18 @@ void testcases(void)
 		case '0':
 			// TODO: Write a testcase that creates a user process
 			// and prints out it's page table
-			printPageTable(createFakeTable(), 2);
-
+			
+			// Create a user process
+			pid_typ pid = create((void *)NULL, 4096, 10, "UserProcess", 0);
+		
+			// Set the process state to ready
+			ready(pid, RESCHED_NO);
+		
+			// Print the page table of the created process
+			pcb *ppcb = &proctab[pid];
+			kprintf("Page table for process %s (PID: %d):\r\n", ppcb->name, pid);
+			printPageTable(ppcb->pagetable, 2);
+		
 			break;
 		case '1':
 			// TODO: Write a testcase that demonstrates a user

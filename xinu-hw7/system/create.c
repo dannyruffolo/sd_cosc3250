@@ -53,21 +53,29 @@ syscall create(void *funcaddr, ulong ssize, unsigned int priority, char *name, u
 
     numproc++;
     ppcb = &proctab[pid];
-	
+
+    saddr = (ulong *)pgalloc(); // Allocate memory for the process's page table
+    ppcb->pagetable = vm_userinit(pid, saddr); // Initialize the process's page table
+
     // TODO: Setup PCB entry for new process.
-    
-    ppcb->state = PRSUSP;   		// State: suspended
-    ppcb->stkbase = saddr;		 // Stack base
-    ppcb->stklen = ssize;         	// Stack length: size
-    ppcb->tickets = priority;		// Tickets: priority
-    strncpy(ppcb->name, name, PNMLEN);    	// Name: ID
-    
+    ppcb->state = PRSUSP;        // State: suspended
+    ppcb->stkbase = saddr;       // Stack base
+    ppcb->stklen = ssize;        // Stack length: size
+    ppcb->tickets = priority;    // Tickets: priority
+    strncpy(ppcb->name, name, PNMLEN); // Name: ID
 
     /* Initialize stack with accounting block. */
     *saddr = STACKMAGIC;
     *--saddr = pid;
     *--saddr = ppcb->stklen;
     *--saddr = (ulong)ppcb->stkbase;
+
+    // Calculating the new stack address for saddr before first push
+    saddr = (ulong *)((ulong)saddr + ssize - sizeof(ulong));
+
+    ppcb->ctx[CTX_SP] = (ulong)saddr; // Set the stack pointer in the process context
+    ppcb->swaparea[CTX_KERNSATP] = (ulong)MAKE_SATP(0, _kernpgtbl); // Set kernel SATP
+    ppcb->swaparea[CTX_KERNSP] = (ulong)_kernsp; // Set kernel stack pointer
 
     /* Handle variable number of arguments passed to starting function   */
     if (nargs)

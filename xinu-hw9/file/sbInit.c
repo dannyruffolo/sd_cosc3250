@@ -64,7 +64,7 @@ devcall sbInit(struct superblock *psuper, int diskfd)
         write(diskfd, fbc, sizeof(struct fbcnode));
     }
 
-
+    //TODO: 
     // Initialize directory structure
     curblock = (int)psuper->sb_dirlst;
     psuper->sb_dirlst = dirblk = malloc(sizeof(struct dirblock));

@@ -1,4 +1,12 @@
 /**
+ * COSC 3250 - Project 9
+ * This is a function to implement a File System
+ * @author [Sam Mrusek and Danny Ruffolo]
+ * Instructor [Dr.Brylow]
+ * TA-BOT:MAILTO [samantha.mrusek@marquette.edu danny.ruffolo@marquette.edu]
+ * */
+
+/**
  * @file     xsh_chpass.c
  * @provides xsh_chpass
  *
@@ -46,5 +54,99 @@ command xsh_chpass(int nargs, char *args[])
  * 4) The password change failed.  (i.e., passwords didn't match.)
  *    Error text = "Password for user %s does not match!\n".
  */
+
+    // Step 1: Verify that a user is logged in
+    if (userid < 0)
+    {
+        printf("Must login first\n");
+        return SYSERR;
+    }
+
+    char *username;
+    if (nargs == 2)
+    {
+        // If a username is provided, check if the current user is superusr
+        if (userid != SUPERUID)
+        {
+            printf("ERROR: Only superusr can change other passwords!\n");
+            return SYSERR;
+        }
+        username = args[1];
+    }
+    else if (nargs == 1)
+    {
+        // If no username is provided, default to the current user
+        username = usertab[userid].username;
+    }
+    else
+    {
+        printf("Usage: chpass [username]\n");
+        return SYSERR;
+    }
+
+    // Step 2: Search for the user in the usertab
+    struct userent *targetUser = NULL;
+    for (int i = 0; i < MAXUSERS; i++)
+    {
+        if (usertab[i].state == USERUSED && strcmp(usertab[i].username, username) == 0)
+        {
+            targetUser = &usertab[i];
+            break;
+        }
+    }
+    if (targetUser == NULL)
+    {
+        printf("User name %s not found.\n", username);
+        return SYSERR;
+    }
+
+    // Step 3: If not superusr, verify the old password
+    if (userid != SUPERUID)
+    {
+        char oldPassword[MAXPASSLEN];
+        printf("Enter previous password for user %s: ", username);
+        getpassword(oldPassword, MAXPASSLEN);
+
+        ulong hashedOldPassword = xinuhash(oldPassword, MAXPASSLEN, targetUser->salt);
+        if (hashedOldPassword != targetUser->passhash)
+        {
+            printf("Password for user %s does not match!\n", username);
+            return SYSERR;
+        }
+    }
+
+    // Step 4: Prompt for the new password twice
+    char newPassword1[MAXPASSLEN];
+    char newPassword2[MAXPASSLEN];
+    printf("Enter new password for user %s: ", username);
+    getpassword(newPassword1, MAXPASSLEN);
+    printf("Confirm new password for user %s: ", username);
+    getpassword(newPassword2, MAXPASSLEN);
+
+    if (strcmp(newPassword1, newPassword2) != 0)
+    {
+        printf("ERROR: Passwords do not match!\n");
+        return SYSERR;
+    }
+
+    // Step 5: Generate a new salt
+    ulong newSalt = SALT; // Use the predefined SALT constant
+
+    // Step 6: Hash the new password with the new salt
+    ulong newHashedPassword = xinuhash(newPassword1, MAXPASSLEN, newSalt);
+
+    // Step 7: Overwrite the user's existing salt and hash
+    targetUser->salt = newSalt;
+    targetUser->passhash = newHashedPassword;
+
+    // Step 8: Persist the changes to disk
+    if (passwdFileWrite() == SYSERR)
+    {
+        printf("ERROR: Failed to write to passwd file!\n");
+        return SYSERR;
+    }
+
+    // Step 9: Print success message and return OK
+    printf("Successfully changed password for user ID %d\n", targetUser - usertab);
     return OK;
 }

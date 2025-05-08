@@ -1,7 +1,19 @@
+/**
+ * COSC 3250 - Project 9
+ * This is a function to implement a File System
+ * @author [Sam Mrusek and Danny Ruffolo]
+ * Instructor [Dr.Brylow]
+ * TA-BOT:MAILTO [samantha.mrusek@marquette.edu danny.ruffolo@marquette.edu]
+ * */
+
 /* passwdFileRead.c - passwdFileRead */
 /* Copyright (C) 2024, Marquette University.  All rights reserved. */
 
 #include <xinu.h>
+
+
+#define FILE_BUFFER_SIZE 1024
+#define FILE_PASSWD "passwd"
 
 /*------------------------------------------------------------------------
  * passwdFileRead - Read in a password file from filesystem.
@@ -33,5 +45,69 @@ devcall passwdFileRead(void)
  *    before overwriting the contents of the existing user table.
  *    Error text = "Passwd file contents corrupted!\n".
  */
+
+    int fd; // File descriptor
+    char buffer[FILE_BUFFER_SIZE]; // Temporary buffer for file contents
+    int bytesRead = 0;
+    int userCount = 0;
+
+    // Step 1: Open the "passwd" file
+    fd = open(FILE_PASSWD, "r");
+    if (fd == SYSERR)
+    {
+        printf("No passwd file found.\n");
+        return SYSERR;
+    }
+
+    // Step 2: Read the file contents into the buffer
+    bytesRead = read(fd, buffer, FILE_BUFFER_SIZE - 1);
+    if (bytesRead <= 0)
+    {
+        printf("Error reading passwd file.\n");
+        close(fd);
+        return SYSERR;
+    }
+    buffer[bytesRead] = '\0'; // Null-terminate the buffer
+
+    // Step 3: Parse the file contents line by line
+    char *line = strtok(buffer, "\n");
+    while (line != NULL && userCount < MAXUSERS)
+    {
+        // Split the line into username, salt, and hash
+        char *username = strtok(line, ",");
+        char *salt = strtok(NULL, ",");
+        char *hash = strtok(NULL, ",");
+
+        if (username == NULL || salt == NULL || hash == NULL)
+        {
+            printf("Passwd file contents corrupted!\n");
+            close(fd);
+            return SYSERR;
+        }
+
+        // Populate the usertab entry
+        strncpy(usertab[userCount].username, username, MAXUSERLEN);
+        usertab[userCount].salt = strtoul(salt, NULL, 10); // Convert salt to ulong
+        usertab[userCount].passhash = strtoul(hash, NULL, 10); // Convert hash to ulong
+        usertab[userCount].state = USERUSED;
+
+        userCount++;
+        line = strtok(NULL, "\n"); // Move to the next line
+    }
+
+    // Step 4: Close the file
+    close(fd);
+
+    // Step 5: Verify the first user entry and global consistency
+    if (userCount == 0 || usertab[0].state != USERUSED || usertab[0].salt != SALT)
+    {
+        printf("Passwd file contents corrupted!\n");
+        return SYSERR;
+    }
+
+    // Update the global user count
+    extern int nusers; // Declare nusers as extern
+    nusers = userCount;
+
     return OK;
 }
